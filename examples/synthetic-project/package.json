@@ -1,0 +1,6 @@
+{
+  "name": "synthetic-next-cache-example",
+  "private": true,
+  "description": "Artificial metadata for offline checker demonstration; do not install or deploy.",
+  "dependencies": {"next": "16.4.0"}
+}

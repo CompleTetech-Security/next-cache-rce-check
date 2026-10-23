@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "snapshot_id": "next-cache-2026-10-23.1",
+  "created_at": "2026-10-23",
+  "rules": [
+    {
+      "id": "GHSA-673q-mjm6-r5xr",
+      "revision": 1,
+      "title": "Next.js cached typed-array return exposure",
+      "component": "next",
+      "advisories": [
+        "GHSA-673q-mjm6-r5xr"
+      ],
+      "enabled": true,
+      "verification_status": "verified",
+      "verified_at": "2026-10-23",
+      "version_scheme": "semver",
+      "affected": [
+        {
+          "branch": "16.x",
+          "introduced": "16.0.0",
+          "fixed": "16.4.1",
+          "last_affected": "16.4.0",
+          "source_ids": [
+            "next-advisory",
+            "next-release"
+          ]
+        }
+      ],
+      "preconditions": [
+        {
+          "id": "app-router",
+          "description": "Application uses App Router.",
+          "source_ids": [
+            "next-advisory"
+          ]
+        },
+        {
+          "id": "cache-components",
+          "description": "Application uses Cache Components.",
+          "source_ids": [
+            "next-advisory",
+            "next-cache-config"
+          ]
+        },
+        {
+          "id": "use-cache",
+          "description": "Application has a function governed by the use-cache directive.",
+          "source_ids": [
+            "next-advisory",
+            "next-directive"
+          ]
+        },
+        {
+          "id": "multiple-typed-array-return",
+          "description": "The cached function returns multiple typed arrays.",
+          "source_ids": [
+            "next-advisory"
+          ]
+        }
+      ],
+      "mitigations": [],
+      "sources": [
+        {
+          "id": "next-advisory",
+          "url": "https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr",
+          "publisher": "Vercel / Next.js maintainers",
+          "verified_at": "2026-10-23"
+        },
+        {
+          "id": "next-release",
+          "url": "https://github.com/vercel/next.js/releases/tag/v16.4.1",
+          "publisher": "Vercel / Next.js maintainers",
+          "verified_at": "2026-10-23"
+        },
+        {
+          "id": "next-directive",
+          "url": "https://nextjs.org/docs/app/api-reference/directives/use-cache",
+          "publisher": "Vercel / Next.js maintainers",
+          "verified_at": "2026-10-23"
+        },
+        {
+          "id": "next-cache-config",
+          "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents",
+          "publisher": "Vercel / Next.js maintainers",
+          "verified_at": "2026-10-23"
+        }
+      ],
+      "notes": [
+        "Maintainer advisory published 2026-10-14; no CVE assigned on verification date.",
+        "The maintainer advises upgrading even without matching functions and gives no known workaround for affected code.",
+        "This checker keeps all static precondition matches as candidates and all local exploitability not_tested.",
+        "Unknown, prerelease, vendor-qualified, pre-16 and future 16.5+ versions stay unknown; this snapshot classifies only exact 16.0–16.4 versions."
+      ]
+    }
+  ]
+}
