@@ -88,6 +88,15 @@ class LockTests(unittest.TestCase):
         data["packages"]["node_modules/next"]["link"] = True
         self.assertIsNone(check.lock_observations(data, "package-lock.json")[0]["version"])
 
+    def test_link_flags_require_booleans_in_every_lockfile_version(self):
+        for version in (1, 2, 3):
+            for value in (None, 0, 1, "", "false", "true", [], {}):
+                data = npm("16.4.1", version)
+                entry = data["dependencies"]["next"] if version == 1 else data["packages"]["node_modules/next"]
+                entry["link"] = value
+                with self.subTest(lockfileVersion=version, link=value), self.assertRaises(check.ScanInputError):
+                    check.lock_observations(data, "package-lock.json")
+
     def test_explicit_wrong_package_identity_is_rejected(self):
         data = npm("16.4.1")
         data["packages"]["node_modules/next"]["name"] = "other-package"
@@ -273,6 +282,18 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual("not_tested", result["exploitability"])
         self.assertEqual("not_tested", result["reachability"]["state"])
         self.assertTrue(all(p["evidence_ids"] for p in result["preconditions"]))
+
+    def test_malformed_link_flag_blocks_a_fixed_project_assessment(self):
+        for value in (None, 0, ""):
+            data = npm("16.4.1")
+            data["packages"]["node_modules/next"]["link"] = value
+            self.put("package-lock.json", data)
+            out = io.StringIO()
+            with self.subTest(link=value), contextlib.redirect_stdout(out):
+                self.assertEqual(2, check.main([str(self.root)]))
+            report = json.loads(out.getvalue())
+            self.assertFalse(report["complete"])
+            self.assertTrue(all(result["status"] == "unknown" for result in report["results"]))
 
     def test_app_router_file_context_survives_unsupported_jsx(self):
         self.put("package-lock.json", npm())

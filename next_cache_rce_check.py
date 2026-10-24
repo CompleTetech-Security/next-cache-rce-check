@@ -711,6 +711,8 @@ def lock_observations(data, path):
             raise ScanInputError("Malformed dependency instance in lockfile.")
         if "name" in entry and entry["name"] != "next":
             raise ScanInputError("Lockfile Next.js package identity is contradictory.")
+        if "link" in entry and type(entry["link"]) is not bool:
+            raise ScanInputError("Lockfile link flags must be booleans.")
         raw = entry.get("version") if not entry.get("link") else None
         if isinstance(raw, str) and raw.startswith("npm:next@"):
             raw = raw[len("npm:next@"):]
