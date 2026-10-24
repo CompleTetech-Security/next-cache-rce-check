@@ -1,0 +1,491 @@
+{
+  "$id": "urn:completetech:security-checker:report:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 2048,
+        "minLength": 0,
+        "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "minItems": 0,
+      "type": "array"
+    },
+    "results": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+            "type": "string"
+          },
+          "component": {
+            "additionalProperties": false,
+            "properties": {
+              "build_source": {
+                "enum": [
+                  "upstream",
+                  "vendor",
+                  "custom",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+                "type": "string"
+              },
+              "version": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "build_source"
+            ],
+            "type": "object"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {
+                  "maxLength": 2048,
+                  "minLength": 0,
+                  "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                  "type": "string"
+                },
+                "kind": {
+                  "enum": [
+                    "version",
+                    "configuration",
+                    "source",
+                    "reachability",
+                    "mitigation",
+                    "inventory"
+                  ],
+                  "type": "string"
+                },
+                "line": {
+                  "maximum": 100000000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "path": {
+                  "format": "relative-path",
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "present",
+                    "absent",
+                    "unknown",
+                    "conflicting",
+                    "candidate"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "state",
+                "detail"
+              ],
+              "type": "object"
+            },
+            "maxItems": 1000,
+            "minItems": 0,
+            "type": "array"
+          },
+          "exploitability": {
+            "const": "not_tested"
+          },
+          "mitigation": {
+            "additionalProperties": false,
+            "properties": {
+              "evidence_ids": {
+                "items": {
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 0,
+                "type": "array"
+              },
+              "state": {
+                "enum": [
+                  "observed",
+                  "not_observed",
+                  "unknown",
+                  "conflicting"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "evidence_ids"
+            ],
+            "type": "object"
+          },
+          "preconditions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "evidence_ids": {
+                  "items": {
+                    "maxLength": 128,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "minItems": 0,
+                  "type": "array"
+                },
+                "id": {
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "present",
+                    "absent",
+                    "unknown",
+                    "conflicting"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "state",
+                "evidence_ids"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "minItems": 0,
+            "type": "array"
+          },
+          "reachability": {
+            "additionalProperties": false,
+            "properties": {
+              "asset_id": {
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                "type": "string"
+              },
+              "authorized": {
+                "type": "boolean"
+              },
+              "component": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+                "type": "string"
+              },
+              "evidence_ids": {
+                "items": {
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 0,
+                "type": "array"
+              },
+              "state": {
+                "enum": [
+                  "not_tested",
+                  "metadata_observed",
+                  "unknown"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "evidence_ids",
+              "authorized",
+              "asset_id",
+              "component"
+            ],
+            "type": "object"
+          },
+          "reasons": {
+            "items": {
+              "maxLength": 2048,
+              "minLength": 0,
+              "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 0,
+            "type": "array"
+          },
+          "recommendation": {
+            "maxLength": 4096,
+            "minLength": 0,
+            "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+            "type": "string"
+          },
+          "rule_id": {
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "format": "uri",
+              "maxLength": 2048,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 0,
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "potentially_affected",
+              "precondition_present",
+              "likely_exposed",
+              "mitigated_configuration",
+              "fixed_version_reported",
+              "unsupported_runtime",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "threat": {
+            "additionalProperties": false,
+            "properties": {
+              "kev": {
+                "additionalProperties": false,
+                "properties": {
+                  "as_of": {
+                    "anyOf": [
+                      {
+                        "format": "date",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "source": {
+                    "anyOf": [
+                      {
+                        "format": "uri",
+                        "maxLength": 2048,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "state": {
+                    "enum": [
+                      "listed",
+                      "not_listed",
+                      "unknown"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "as_of",
+                  "source"
+                ],
+                "type": "object"
+              },
+              "vendor_exploitation": {
+                "additionalProperties": false,
+                "properties": {
+                  "as_of": {
+                    "anyOf": [
+                      {
+                        "format": "date",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "source": {
+                    "anyOf": [
+                      {
+                        "format": "uri",
+                        "maxLength": 2048,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "state": {
+                    "enum": [
+                      "reported",
+                      "not_reported",
+                      "unknown"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "state",
+                  "as_of",
+                  "source"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "kev",
+              "vendor_exploitation"
+            ],
+            "type": "object"
+          },
+          "version_assessment": {
+            "enum": [
+              "affected",
+              "fixed_reported",
+              "not_affected",
+              "unsupported",
+              "unknown"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "component",
+          "rule_id",
+          "status",
+          "version_assessment",
+          "confidence",
+          "evidence",
+          "preconditions",
+          "mitigation",
+          "reachability",
+          "threat",
+          "exploitability",
+          "reasons",
+          "recommendation",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "maxItems": 10000,
+      "minItems": 0,
+      "type": "array"
+    },
+    "rules": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}(?![\\s\\S])",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_id": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+          "type": "string"
+        },
+        "verified_at": {
+          "format": "date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "verified_at",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\\s\\S])",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[^\\x00-\\x1f\\x7f-\\x9f]*(?![\\s\\S])",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "tool",
+    "rules",
+    "complete",
+    "limitations",
+    "results"
+  ],
+  "title": "CompleteTech security checker report v1.0",
+  "type": "object"
+}
