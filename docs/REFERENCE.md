@@ -43,7 +43,8 @@ At the project root the checker reads existing `package-lock.json`,
 `node_modules/next/package.json` if present. npm lock versions 1, 2, and 3 are
 supported. Canonical `npm:next@VERSION` aliases and entries explicitly named
 `next` are retained under their actual package locations; contradictory explicit
-package identities are rejected. Linked package entries have no trusted exact
+package identities are rejected. Present `link` flags must be booleans; malformed
+flags make inventory coverage incomplete and block a fixed assessment. Linked package entries have no trusted exact
 version. Nested Next.js
 lockfile instances receive distinct results, but nested installed package trees
 and workspace relationships are not traversed.
