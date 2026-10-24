@@ -1,8 +1,8 @@
 # Licensing
 
 next-cache-rce-check follows the licensing model used by CompleteTech LLC's
-[node2shell-check](https://github.com/CompleteTech-LLC/node2shell-check) and
-[php2shell-check](https://github.com/CompleteTech-LLC/php2shell-check):
+[node2shell-check](https://github.com/completetech-security/node2shell-check) and
+[php2shell-check](https://github.com/completetech-security/php2shell-check):
 GNU AGPL-3.0 or a separate commercial license from CompleteTech LLC.
 
 ## Open source: AGPL-3.0

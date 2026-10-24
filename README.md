@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml"><img src="https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/completetech-security/next-cache-rce-check/actions/workflows/tests.yml"><img src="https://github.com/completetech-security/next-cache-rce-check/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-1E3A8A" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/dependencies-none-067647" alt="No dependencies">
   <a href="LICENSING.md"><img src="https://img.shields.io/badge/license-AGPL--3.0%20%7C%20commercial-64748B" alt="AGPL-3.0 or commercial license"></a>
@@ -18,7 +18,7 @@
 
 `next-cache-rce-check` assesses reported Next.js versions, npm dependency metadata, and bounded JS/TS source context against the maintainer advisory for one issue. It exports canonical JSON, CSV, or a branded HTML report. It never executes project code, invokes a package manager, or contacts the network, and it reports uncertainty honestly: missing, conflicting, or qualified evidence is `unknown`, never "safe".
 
-It follows the conservative reporting and licensing approach of [node2shell-check](https://github.com/CompleteTech-LLC/node2shell-check) and [php2shell-check](https://github.com/CompleteTech-LLC/php2shell-check).
+It follows the conservative reporting and licensing approach of [node2shell-check](https://github.com/completetech-security/node2shell-check) and [php2shell-check](https://github.com/completetech-security/php2shell-check).
 
 ## Quick start
 
