@@ -1,24 +1,24 @@
 <p align="center">
-  <a href="https://complete.tech"><img src="assets/logo.png" alt="CompleteTech LLC" width="160"></a>
+  <img src="docs/images/banner.png" alt="next-cache-rce-check by CompleteTech LLC" width="100%">
 </p>
 
-# next-cache-rce-check
+<p align="center">
+  <a href="https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml"><img src="https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/python-3.10%2B-1E3A8A" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/dependencies-none-067647" alt="No dependencies">
+  <a href="LICENSING.md"><img src="https://img.shields.io/badge/license-AGPL--3.0%20%7C%20commercial-64748B" alt="AGPL-3.0 or commercial license"></a>
+</p>
 
-[![Tests](https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml/badge.svg)](https://github.com/CompleteTech-LLC/next-cache-rce-check/actions/workflows/tests.yml)
-![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-1E3A8A)
-![No dependencies](https://img.shields.io/badge/dependencies-none-067647)
-[![AGPL-3.0 or commercial license](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20commercial-64748B)](LICENSING.md)
+<p align="center">
+  <b>Offline triage for the Next.js use-cache typed-array RCE</b><br>
+  <a href="https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr">GHSA-673q-mjm6-r5xr</a> · offline, single-file, dependency-free
+</p>
 
-**Offline Next.js use-cache typed-array RCE exposure triage for
-[GHSA-673q-mjm6-r5xr](https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr).**
-Assess reported versions, npm dependency metadata, and bounded JS/TS source
-context. Export canonical JSON, CSV, or a branded HTML report.
+---
 
-One dedicated advisory, one executable, no third-party dependencies. The checker
-follows the conservative reporting and licensing approach of
-[node2shell-check](https://github.com/CompleteTech-LLC/node2shell-check) and
-[php2shell-check](https://github.com/CompleteTech-LLC/php2shell-check). It never
-executes project code, invokes a package manager, or contacts the network.
+`next-cache-rce-check` assesses reported Next.js versions, npm dependency metadata, and bounded JS/TS source context against the maintainer advisory for one issue. It exports canonical JSON, CSV, or a branded HTML report. It never executes project code, invokes a package manager, or contacts the network, and it reports uncertainty honestly: missing, conflicting, or qualified evidence is `unknown`, never "safe".
+
+It follows the conservative reporting and licensing approach of [node2shell-check](https://github.com/CompleteTech-LLC/node2shell-check) and [php2shell-check](https://github.com/CompleteTech-LLC/php2shell-check).
 
 ## Quick start
 
@@ -50,7 +50,22 @@ Use separate invocations for distinct applications. Repeated `--next-version`
 arguments are observations about the same dependency instance, so disagreement
 is reported as a conflict.
 
-## What the advisory establishes
+## The report
+
+`--format html` produces a single self-contained, script-free file with your logo, a completeness summary, and every result with its evidence. It follows the reader's light or dark theme and prints cleanly.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/report-dark.png">
+    <img src="docs/images/report-light.png" alt="Example next-cache-rce-check report with the CompleteTech LLC logo" width="900">
+  </picture>
+</p>
+
+<p align="center"><sub>Synthetic example from the artificial <code>examples/synthetic-project</code> fixture. <a href="docs/example-report.html">View the HTML</a>.</sub></p>
+
+Use `--logo path/to/logo.png` and `--brand "Your Company"` to brand it for your own organization. CSV and JSON remain available for spreadsheets and pipelines.
+
+## What the results mean
 
 The maintainer advisory identifies **Next.js 16.0.0 through 16.4.0** as affected
 and **16.4.1** as fixed. Its application conditions are App Router, Cache
@@ -82,7 +97,18 @@ configuration are not evaluated. No match does not establish absence or safety.
 The canonical [contract](docs/CONTRACT.md) reserves additional statuses for
 checkers with stronger evidence; this CLI does not emit them.
 
-## Supported evidence and limits
+### Fix versions
+
+| Release line | Affected (reported) | Fixed in |
+| --- | --- | --- |
+| Next.js 16.0 to 16.4 | 16.0.0 to 16.4.0 | 16.4.1 |
+
+Other lines (earlier majors, prereleases, vendor-qualified versions, 16.5 and later) are `unknown`. The snapshot was verified 2026-10-23 against the [maintainer advisory](https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr).
+
+> [!IMPORTANT]
+> **Potential exposure is not confirmed exploitability.** Every result keeps `exploitability: not_tested`. A reported version, lockfile, or source pattern cannot show deployed configuration, vendor backports, or real patch status. Treat each result as a prompt for a maintainer to check.
+
+## How it works
 
 | Input | Treatment |
 | --- | --- |
@@ -130,7 +156,15 @@ See the [synthetic HTML example](docs/example-report.html),
 [assessment methodology](docs/METHODOLOGY.md), [CLI reference](docs/REFERENCE.md),
 and [report schema](schemas/report-v1.schema.json).
 
-## Development and provenance
+## Documentation
+
+- [CLI reference](docs/REFERENCE.md): options, bounds, and syntax limits
+- [Assessment methodology](docs/METHODOLOGY.md): how each version and source candidate is classified
+- [Report contract](docs/CONTRACT.md) and [report schema](schemas/report-v1.schema.json)
+- [Synthetic HTML example](docs/example-report.html)
+- [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
+
+### Development and provenance
 
 ```sh
 python tools/build.py
@@ -148,7 +182,11 @@ online update channel or signed-feed trust claim in this release.
 `SHA256SUMS` records the distribution and raw snapshot file hashes and is
 regenerated and checked by the build script.
 
-Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). Security reports follow
-[SECURITY.md](SECURITY.md). Code is AGPL-3.0 or separately commercially licensed;
-CompleteTech LLC brand assets have separate terms in
-[LICENSING.md](LICENSING.md) and [BRAND_ASSETS.md](BRAND_ASSETS.md).
+## License
+
+Dual licensed: GNU [AGPL-3.0](LICENSE), or a separate commercial license from CompleteTech LLC for terms that do not fit the AGPL model. See [LICENSING.md](LICENSING.md); this repository does not grant a commercial license or state pricing. The CompleteTech LLC name and logo are covered by neither license; see [BRAND_ASSETS.md](BRAND_ASSETS.md). Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<p align="center">
+  <a href="https://complete.tech"><img src="assets/logo.png" alt="CompleteTech LLC" width="160"></a><br>
+  <sub>Built by <a href="https://complete.tech">CompleteTech LLC</a> · Innovation at Every Integration</sub>
+</p>
