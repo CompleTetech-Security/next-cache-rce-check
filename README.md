@@ -52,6 +52,11 @@ is reported as a conflict.
 Accepted exact versions remain attached to their individual evidence sources
 in JSON, CSV and HTML even when disagreement makes the selected version unknown.
 
+Run envelopes retain UTC generation time and the actual standalone executable
+SHA-256 plus the rules snapshot ID/date/hash in JSON, CSV and HTML, including
+empty/incomplete summaries. These identify report generation and code bytes;
+they do not attest deployed state, patch authenticity or evidence acquisition.
+
 ## The report
 
 `--format html` produces a single self-contained, script-free file with your logo, a completeness summary, and every result with its evidence. It follows the reader's light or dark theme and prints cleanly.

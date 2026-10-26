@@ -106,9 +106,18 @@ reported version, candidate evidence, precondition states, mitigation,
 reachability, and external threat evidence. A stable SHA-256-derived location
 suffix distinguishes dependency instances within the caller's asset label.
 
-JSON is deterministic for the same inputs and snapshot; it contains no scan-time
-clock or host identity. CSV adds a `record_type` column and repeats essential
-report metadata. HTML escapes text, embeds optional local raster branding, uses
+Assessment results are deterministic for the same inputs and rules snapshot.
+The observation envelope adds `generated_at` (UTC run-generation time, not an
+input acquisition or deployment time) and `tool.executable_sha256` (actual
+standalone file bytes, not publisher authenticity or patch attestation). The CLI
+captures the context once before inventory, preserving it after interruption.
+Python callers can inject `generated_at` and `executable_sha256` into `assessment`
+or `make_report` for deterministic fixtures. No filesystem modification time or
+host identity is used. CSV appends `tool`, `tool_version`, `executable_sha256`,
+`generated_at`, `rules_snapshot_id` and `rules_sha256`, repeating them alongside
+`rules_as_of` and `complete` on every result and empty summary row. HTML retains
+the same envelope. These required fields extend the closed report schema; update
+strict consumers alongside this version. CSV adds a `record_type` column.  HTML escapes text, embeds optional local raster branding, uses
 a restrictive content security policy, and needs no script or network resource.
 The CSV renderer neutralizes formula-like cell prefixes before export.
 

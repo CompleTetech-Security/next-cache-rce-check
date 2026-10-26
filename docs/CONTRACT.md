@@ -29,7 +29,8 @@ The top level has exactly these fields:
 | Field | Meaning |
 | --- | --- |
 | `schema_version` | Constant string `1.0`. |
-| `tool` | Checker name and tool version. |
+| `tool` | Checker name, tool version, and required lowercase `executable_sha256` identifying standalone executable bytes. |
+| `generated_at` | Real UTC run-generation timestamp in `YYYY-MM-DDTHH:MM:SSZ`; not acquisition time or deployed-patch attestation. |
 | `rules` | Snapshot ID, verification date, and canonical snapshot SHA-256 or `null` when unavailable. |
 | `complete` | Whether the intended input set was assessed without interruption or scan limits. |
 | `limitations` | Controlled descriptions of skipped inputs, unsupported formats, truncation, or incomplete coverage. |
@@ -37,7 +38,10 @@ The top level has exactly these fields:
 
 Unknown fields are rejected. Unsupported schema versions are operational errors,
 not a reason to reinterpret the input as a different format. Dates use real
-`YYYY-MM-DD` calendar dates. No wall-clock timestamp is automatically generated.
+`YYYY-MM-DD` calendar dates. The envelope generates a UTC run timestamp unless
+one is explicitly injected; timestamps and executable digests are validated.
+These required envelope fields extend the closed schema, so strict consumers
+must update with this distribution.
 
 Every result contains:
 
@@ -161,14 +165,19 @@ Unverified research leads must remain disabled or outside the active snapshot.
 
 ## Deterministic formats
 
-Canonical JSON uses the same stable encoding as snapshot hashing. It includes
-no runtime clock, absolute input path, or implicit filename-derived label.
+Canonical JSON uses the same stable encoding as snapshot hashing. With a fixed
+injected `generated_at` and `executable_sha256`, the full report is deterministic.
+The CLI captures both once before inventory; the pure classification results do
+not depend on them. There is no absolute input path or implicit filename label.
 Callers must traverse and order observations deterministically; list order is
 preserved to avoid silently changing the meaning of configuration operations.
 
 CSV has a `record_type` column. Ordinary rows use `result` and retain structured
 dimensions as JSON text in cells. If no result completed, one `summary` row
 preserves `complete`, `limitations`, the rule date, and `not_tested` status.
+Both result and summary rows append tool name/version, executable SHA-256, UTC
+generation timestamp, rules snapshot ID and SHA-256; original columns retain
+their positions. Rule verification dates are distinct from observation time.
 Consumers must distinguish this row from an asset finding. Formula prefixes
 `=`, `+`, `-`, and `@`, including after leading whitespace, are neutralized.
 

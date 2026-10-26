@@ -15,7 +15,7 @@ import re
 import stat
 import tempfile
 from copy import deepcopy
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -56,6 +56,9 @@ def _array(items, maximum=1000, minimum=0):
 
 ID_SCHEMA = {"type": "string", "pattern": r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}(?![\s\S])", "maxLength": 128}
 DATE_SCHEMA = {"type": "string", "format": "date"}
+UTC_SCHEMA = {"type": "string", "format": "date-time", "maxLength": 20,
+              "pattern": r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z(?![\s\S])"}
+DIGEST_SCHEMA = {"type": "string", "pattern": r"^[a-f0-9]{64}(?![\s\S])"}
 URL_SCHEMA = {"type": "string", "format": "uri", "maxLength": 2048}
 NULLABLE_DATE = {"anyOf": [DATE_SCHEMA, {"type": "null"}]}
 NULLABLE_URL = {"anyOf": [URL_SCHEMA, {"type": "null"}]}
@@ -103,7 +106,8 @@ RESULT_SCHEMA = _object({
 })
 REPORT_SCHEMA = _object({
     "schema_version": {"const": CONTRACT_VERSION},
-    "tool": _object({"name": ID_SCHEMA, "version": _text(64, min_length=1)}),
+    "tool": _object({"name": ID_SCHEMA, "version": _text(64, min_length=1), "executable_sha256": DIGEST_SCHEMA}),
+    "generated_at": UTC_SCHEMA,
     "rules": _object({
         "snapshot_id": ID_SCHEMA, "verified_at": DATE_SCHEMA,
         "sha256": {"anyOf": [{"type": "string", "pattern": r"^[a-f0-9]{64}(?![\s\S])"}, {"type": "null"}]},
@@ -152,6 +156,13 @@ def _check_format(value, fmt, path):
             date.fromisoformat(value)
         except ValueError:
             raise ContractError(f"{path}: invalid ISO date") from None
+    elif fmt == "date-time":
+        try:
+            if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", value) is None:
+                raise ValueError
+            datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            raise ContractError(f"{path}: expected real UTC timestamp") from None
     elif fmt == "uri":
         try:
             parsed = urlsplit(value)
@@ -313,9 +324,21 @@ def make_result(asset_id, component, rule_id, status="unknown", *, version=None,
     return validate_result(result)
 
 
+def utc_now():
+    """Run envelope time, independent of the deterministic assessment data."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def executable_digest():
+    """Identify the distributed executable bytes; never infer patch attestation."""
+    return hashlib.sha256(_read_regular_file(Path(__file__), MAX_JSON_BYTES)).hexdigest()
+
+
 def make_report(tool, tool_version, snapshot_id, rules_as_of, results, *, complete=True,
-                limitations=None, snapshot_digest=None):
-    report = {"schema_version": CONTRACT_VERSION, "tool": {"name": tool, "version": tool_version},
+                limitations=None, snapshot_digest=None, generated_at=None, executable_sha256=None):
+    report = {"schema_version": CONTRACT_VERSION, "tool": {"name": tool, "version": tool_version,
+              "executable_sha256": executable_digest() if executable_sha256 is None else executable_sha256},
+              "generated_at": utc_now() if generated_at is None else generated_at,
               "rules": {"snapshot_id": snapshot_id, "verified_at": rules_as_of, "sha256": snapshot_digest},
               "complete": complete, "limitations": deepcopy(limitations or []), "results": deepcopy(results)}
     return validate_report(report)
@@ -446,17 +469,22 @@ def render_csv(report):
     output = io.StringIO(newline="")
     fields = ("record_type", "asset_id", "component", "version", "rule_id", "status", "version_assessment", "confidence",
               "exploitability", "complete", "rules_as_of", "evidence", "preconditions", "mitigation",
-              "reachability", "threat", "reasons", "recommendation", "sources", "limitations")
+              "reachability", "threat", "reasons", "recommendation", "sources", "limitations",
+              "tool", "tool_version", "executable_sha256", "generated_at", "rules_snapshot_id", "rules_sha256")
     writer = csv.DictWriter(output, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
+    provenance = {"tool": report["tool"]["name"], "tool_version": report["tool"]["version"],
+                  "executable_sha256": report["tool"]["executable_sha256"], "generated_at": report["generated_at"],
+                  "rules_snapshot_id": report["rules"]["snapshot_id"], "rules_sha256": report["rules"]["sha256"] or ""}
     for result in report["results"]:
         row = {key: result[key] for key in fields if key in result}
         row.update(record_type="result", component=result["component"]["name"], version=result["component"]["version"] or "",
                    complete=report["complete"], rules_as_of=report["rules"]["verified_at"], limitations=report["limitations"])
+        row.update(provenance)
         writer.writerow({key: _csv_safe(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
                                        if isinstance(value, (dict, list)) else value) for key, value in row.items()})
     if not report["results"]:
-        writer.writerow({"record_type": "summary", "complete": report["complete"],
+        writer.writerow({**provenance, "record_type": "summary", "complete": report["complete"],
                          "rules_as_of": report["rules"]["verified_at"], "exploitability": "not_tested",
                          "limitations": json.dumps(report["limitations"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))})
     return output.getvalue()
@@ -514,7 +542,7 @@ article,.callout{background:var(--surface);border:1px solid var(--line);border-r
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}p,li,code{overflow-wrap:anywhere}a{color:var(--accent)}summary{cursor:pointer}
 footer{font-size:.85rem;color:var(--muted)}@media print{body{background:white;color:black}article{break-inside:avoid}details>summary{display:none}details>ul,details>pre{display:block}}
 </style></head><body><main><header>""" + logo_html + "<div class='eyebrow'>" + esc(brand) + "</div><h1>Security evidence report</h1><p>" + esc(report["tool"]["name"]) \
-        + " " + esc(report["tool"]["version"]) + " · rules verified " + esc(report["rules"]["verified_at"]) \
+        + " " + esc(report["tool"]["version"]) + " · Generated (UTC): " + esc(report["generated_at"]) + " · Executable SHA-256: " + esc(report["tool"]["executable_sha256"]) + " · rules verified " + esc(report["rules"]["verified_at"]) + " · Snapshot: " + esc(report["rules"]["snapshot_id"]) + " · SHA-256: " + esc(report["rules"]["sha256"]) \
         + "</p></header><div class='callout'><strong>" + ("Completed assessment" if report["complete"] else "Incomplete assessment") \
         + "</strong><p>Local exploitability is not tested. Version, configuration, candidate source patterns and external exploitation reports are separate evidence.</p><p>" \
         + counts + "</p><ul>" + limitations + "</ul></div>" + "".join(rows) \
