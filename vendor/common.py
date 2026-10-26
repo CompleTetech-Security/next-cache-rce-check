@@ -484,9 +484,11 @@ def render_csv(report):
         writer.writerow({key: _csv_safe(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
                                        if isinstance(value, (dict, list)) else value) for key, value in row.items()})
     if not report["results"]:
-        writer.writerow({**provenance, "record_type": "summary", "complete": report["complete"],
+        row = {**provenance, "record_type": "summary", "complete": report["complete"],
                          "rules_as_of": report["rules"]["verified_at"], "exploitability": "not_tested",
-                         "limitations": json.dumps(report["limitations"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))})
+                         "limitations": report["limitations"]}
+        writer.writerow({key: _csv_safe(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                                       if isinstance(value, (dict, list)) else value) for key, value in row.items()})
     return output.getvalue()
 
 

@@ -50,6 +50,10 @@ class ProvenanceTests(unittest.TestCase):
             self.assertEqual(row["rules_snapshot_id"], "snapshot")
             self.assertEqual(row["rules_sha256"], "c" * 64)
             self.assertEqual(row["complete"], str(complete))
+        value = check.make_report("synthetic", "=synthetic", "snapshot", "2026-10-23", [],
+                                  generated_at=STAMP, executable_sha256=DIGEST)
+        row = next(csv.DictReader(io.StringIO(check.render_csv(value))))
+        self.assertEqual(row["tool_version"], "'=synthetic")
 
     def test_invalid_or_forged_envelopes_fail_conservatively(self):
         for bad in ("2026-02-30T12:00:00Z", "2026-10-25", "2026-10-25T12:00:00+00:00", "2026-10-25T12:00:00Z\n"):
