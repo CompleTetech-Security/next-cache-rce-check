@@ -66,6 +66,8 @@ EVIDENCE_SCHEMA = _object({
     "state": _enum(EVIDENCE_STATES), "detail": _text(2048),
     "path": {"type": "string", "format": "relative-path", "maxLength": 512},
     "line": {"type": "integer", "minimum": 1, "maximum": 100000000},
+    "observed_version": {"type": "string", "maxLength": 32,
+                         "pattern": r"^(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})(?![\s\S])"},
 }, required=("id", "kind", "state", "detail"))
 CONDITION_SCHEMA = _object({"id": ID_SCHEMA, "state": _enum(CONDITION_STATES),
                             "evidence_ids": _array(ID_SCHEMA, 100)})
@@ -221,6 +223,8 @@ def _evidence_map(evidence):
     for item in evidence:
         if "line" in item and "path" not in item:
             raise ContractError("source line requires a relative path")
+        if "observed_version" in item and item["kind"] != "version":
+            raise ContractError("observed version requires version evidence")
     return by_id
 
 
@@ -483,6 +487,7 @@ def render_html(report, brand="CompleteTech LLC", logo=None):
     rows = []
     for result in report["results"]:
         evidence = "".join("<li>" + esc(item["kind"] + ": " + item["state"] + " — " + item["detail"])
+                           + (" <code>" + esc(item["observed_version"]) + "</code>" if "observed_version" in item else "")
                            + (" <code>" + esc(item["path"]) + (":" + str(item["line"]) if "line" in item else "") + "</code>" if "path" in item else "")
                            + "</li>" for item in result["evidence"])
         reasons = "".join("<li>" + esc(reason) + "</li>" for reason in result["reasons"])

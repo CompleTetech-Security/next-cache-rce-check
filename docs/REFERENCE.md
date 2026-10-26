@@ -18,7 +18,7 @@ directory is never scanned by default. Paths are local; URLs are not inputs.
 | --- | --- |
 | `PROJECT` | Stable project root directory. Root symlinks are rejected. Inspect each application separately. |
 | `--next-version` | An observation about the root Next.js instance. Repeat to preserve multiple observations; disagreement is unknown. |
-| `--asset-id` | Non-sensitive label, 1–80 ASCII letters/digits/dot/colon/hyphen/underscore, starting with letter/digit. Default `project`. |
+| `--asset-id` | Non-sensitive label, 1â€“80 ASCII letters/digits/dot/colon/hyphen/underscore, starting with letter/digit. Default `project`. |
 | `--format` | JSON (default), CSV, or self-contained HTML. All derive from the same canonical report. |
 | `--output` | Destination outside the assessed project directory; otherwise stdout. The parent directory must already exist. |
 | `--force` | Replace an existing report atomically outside the project tree. Never overwrite scanned inputs, the running executable, or a supplied logo. Symlink outputs are rejected. |
@@ -116,3 +116,9 @@ Only controlled descriptions, exact accepted versions, relative paths/lines, and
 the caller's asset label are emitted. Source text, package URLs, malformed
 version values, absolute paths, and environment data are not copied. File names
 and labels may still be sensitive. Store real reports outside this repository.
+
+Accepted plain exact version observations are retained as observed_version
+on each version evidence item. This preserves source paths and categories
+when conflicts keep component.version null. JSON and CSV evidence contain
+the field; HTML displays it beside its source. Invalid and qualified raw
+values are omitted. Conflicts remain unknown with exploitability not_tested.

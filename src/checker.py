@@ -599,6 +599,8 @@ def assessment(observations, candidates, asset_id="project", *, complete=True, i
             entry = {"id": "version-" + str(i), "kind": "version", "state": "conflicting" if conflict else "present" if exact_version(observation["version"]) else "unknown", "detail": "Next.js version evidence from " + observation["kind"] + "; patch provenance is not attested."}
             if observation["path"]:
                 entry["path"] = observation["path"]
+            if exact_version(observation["version"]):
+                entry["observed_version"] = observation["version"]
             evidence.append(entry)
         predicates = {key: [] for key in ("app-router", "cache-components", "use-cache", "multiple-typed-array-return")}
         relevant_candidates = candidates if location == "node_modules/next" else []

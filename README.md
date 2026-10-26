@@ -49,6 +49,8 @@ writes into the project tree.
 Use separate invocations for distinct applications. Repeated `--next-version`
 arguments are observations about the same dependency instance, so disagreement
 is reported as a conflict.
+Accepted exact versions remain attached to their individual evidence sources
+in JSON, CSV and HTML even when disagreement makes the selected version unknown.
 
 ## The report
 
