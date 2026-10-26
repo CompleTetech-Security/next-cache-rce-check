@@ -415,7 +415,8 @@ class ProjectTests(unittest.TestCase):
     def test_deterministic_json_and_renderers(self):
         self.put("package-lock.json", npm())
         report = self.scan()
-        self.assertEqual(check.canonical_json(report), check.canonical_json(self.scan()))
+        with patch.object(check, "utc_now", return_value=report["generated_at"]):
+            self.assertEqual(check.canonical_json(report), check.canonical_json(self.scan()))
         data = list(csv.DictReader(io.StringIO(check.render_csv(report))))
         self.assertEqual(report["results"][0]["status"], data[0]["status"])
         html = check.render_html(report, brand="<script>SYNTHETIC</script>")

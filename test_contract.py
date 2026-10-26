@@ -181,7 +181,7 @@ class RuleAndReportTests(unittest.TestCase):
         with self.assertRaises(contract.ContractError):
             contract.snapshot_digest(snapshot)
 
-    def test_reports_are_deterministic_without_wall_clock_or_input_mutation(self):
+    def test_fixed_report_envelopes_are_deterministic_without_input_mutation(self):
         result = affected()
         value = report(result)
         result["reasons"].append("changed later")
@@ -189,7 +189,7 @@ class RuleAndReportTests(unittest.TestCase):
         first = contract.canonical_json(value)
         second = contract.canonical_json(dict(reversed(list(value.items()))))
         self.assertEqual(first, second)
-        self.assertNotIn("generated_at", first)
+        self.assertIn("generated_at", first)
 
     def test_html_escapes_every_untrusted_text_and_contains_no_external_assets(self):
         result = affected(component='<img src=x onerror="alert(1)">', reasons=["<script>alert(1)</script>"], recommendation='<a href="javascript:x">x</a>')

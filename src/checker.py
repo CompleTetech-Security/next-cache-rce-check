@@ -581,7 +581,7 @@ def inventory_project(root):
     return observations, candidates, complete, sorted(limitations), protected, inventory_complete
 
 
-def assessment(observations, candidates, asset_id="project", *, complete=True, inventory_complete=True, limitations=None):
+def assessment(observations, candidates, asset_id="project", *, complete=True, inventory_complete=True, limitations=None, generated_at=None, executable_sha256=None):
     grouped = collections.defaultdict(list)
     for observation in observations:
         grouped[observation["location"]].append(observation)
@@ -617,7 +617,7 @@ def assessment(observations, candidates, asset_id="project", *, complete=True, i
         evidence.append({"id": "dependency-instance", "kind": "inventory", "state": "present" if observed else "unknown", "detail": "Dependency instance: " + location})
         identity = asset_id + ":next-" + hashlib.sha256(location.encode("utf-8")).hexdigest()[:12]
         results.append(make_result(identity, "next", RULE_ID, status, version=version, build_source="unknown", version_assessment=version_state, confidence="low" if status != "unknown" else "unknown", evidence=evidence, preconditions=preconditions, reasons=[reason, STATIC_LIMITATION], recommendation=RECOMMENDATION, sources=RULE_SOURCES))
-    return make_report(TOOL_NAME, TOOL_VERSION, SNAPSHOT_ID, RULE_DATE, results, complete=complete, snapshot_digest=snapshot_digest(RULE_SNAPSHOT), limitations=[STATIC_LIMITATION, "Only npm lockfile versions 1–3 and direct installed next/package.json metadata are supported. Source analysis is lexical; aliases, imports, concise arrows, JSX semantics, templates, and data flow are not resolved."] + list(limitations or []))
+    return make_report(TOOL_NAME, TOOL_VERSION, SNAPSHOT_ID, RULE_DATE, results, complete=complete, generated_at=generated_at, executable_sha256=executable_sha256, snapshot_digest=snapshot_digest(RULE_SNAPSHOT), limitations=[STATIC_LIMITATION, "Only npm lockfile versions 1–3 and direct installed next/package.json metadata are supported. Source analysis is lexical; aliases, imports, concise arrows, JSX semantics, templates, and data flow are not resolved."] + list(limitations or []))
 
 
 def main(argv=None):
@@ -625,7 +625,7 @@ def main(argv=None):
     parser.add_argument("project", nargs="?", help="Project directory to inspect; no default directory is scanned implicitly.")
     parser.add_argument("--next-version", action="append", default=[], metavar="VERSION", help="Explicit reported Next.js version; repeat to preserve conflicting observations.")
     parser.add_argument("--asset-id", default="project", help="Non-sensitive report label (letters, numbers, dots, colons, hyphens, underscores).")
-    parser.add_argument("--format", choices=("json", "csv", "html"), default="json")
+    parser.add_argument("--format", choices=("json", "csv", "html"), default="json", help="Report format; each retains UTC run-generation time and executable/rules SHA-256 identity.")
     parser.add_argument("--output", type=Path, help="Output file outside the assessed project directory; stdout if omitted.")
     parser.add_argument("--force", action="store_true", help="Replace an existing report, never a scanned input.")
     parser.add_argument("--brand", default="CompleteTech LLC", help="HTML report display name.")
@@ -644,6 +644,7 @@ def main(argv=None):
     inventory_complete = True
     interrupted = False
     try:
+        generated_at, executable_sha256 = utc_now(), executable_digest()
         if args.project:
             if args.output:
                 project_root = Path(os.path.abspath(args.project))
@@ -662,7 +663,7 @@ def main(argv=None):
             observations = observations[:MAX_OBSERVATIONS]
             complete = inventory_complete = False
             limitations.append("Combined dependency observation limit reached.")
-        report = assessment(observations, candidates, args.asset_id, complete=complete, inventory_complete=inventory_complete, limitations=limitations)
+        report = assessment(observations, candidates, args.asset_id, complete=complete, inventory_complete=inventory_complete, limitations=limitations, generated_at=generated_at, executable_sha256=executable_sha256)
         if args.logo:
             protected.append(args.logo)
         output = canonical_json(report) if args.format == "json" else render_csv(report) if args.format == "csv" else render_html(report, brand=args.brand, logo=args.logo)
