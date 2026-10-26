@@ -121,6 +121,11 @@ strict consumers alongside this version. CSV adds a `record_type` column.  HTML 
 a restrictive content security policy, and needs no script or network resource.
 The CSV renderer neutralizes formula-like cell prefixes before export.
 
+An installation symlink to the executing standalone script is resolved only for
+its executable digest. Copied standalone files and replaced file bytes retain
+their own actual digest. This exception does not allow symlinked evidence inputs
+or output paths; their existing protections remain in force.
+
 Only controlled descriptions, exact accepted versions, relative paths/lines, and
 the caller's asset label are emitted. Source text, package URLs, malformed
 version values, absolute paths, and environment data are not copied. File names

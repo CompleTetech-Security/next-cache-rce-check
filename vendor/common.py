@@ -331,7 +331,9 @@ def utc_now():
 
 def executable_digest():
     """Identify the distributed executable bytes; never infer patch attestation."""
-    return hashlib.sha256(_read_regular_file(Path(__file__), MAX_JSON_BYTES)).hexdigest()
+    # Only the executing script may be reached through an installation symlink.
+    # Evidence readers and output publication retain their no-follow policies.
+    return hashlib.sha256(_read_regular_file(Path(__file__).resolve(strict=True), MAX_JSON_BYTES)).hexdigest()
 
 
 def make_report(tool, tool_version, snapshot_id, rules_as_of, results, *, complete=True,

@@ -4,6 +4,9 @@ import hashlib
 import io
 import json
 import socket
+import subprocess
+import sys
+import tempfile
 import unittest
 from copy import deepcopy
 from pathlib import Path
@@ -95,6 +98,38 @@ class ProvenanceTests(unittest.TestCase):
              mock.patch("sys.stderr", new_callable=io.StringIO) as error:
             self.assertEqual(check.main(["--next-version", "16.4.0"]), 2)
         self.assertNotIn("synthetic", error.getvalue())
+
+    def test_copied_standalone_digest_tracks_replaced_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "standalone.py"
+            original = Path(check.__file__).read_bytes()
+            script.write_bytes(original)
+            first = self.run_standalone(script)
+            script.write_bytes(original + b"\n# Synthetic replacement bytes\n")
+            second = self.run_standalone(script)
+            self.assertEqual(first["results"], second["results"])
+            self.assertNotEqual(first["tool"]["executable_sha256"], second["tool"]["executable_sha256"])
+
+    def test_installed_symlink_hashes_executing_target_without_relaxing_input_reader(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "standalone.py"
+            script.write_bytes(Path(check.__file__).read_bytes())
+            link = Path(directory) / "installed.py"
+            try:
+                link.symlink_to(script)
+            except (OSError, NotImplementedError):
+                self.skipTest("Executable symlinks unavailable on this platform")
+            self.run_standalone(link)
+            with self.assertRaises(check.ContractError):
+                check._read_regular_file(link, check.MAX_JSON_BYTES)
+
+    def run_standalone(self, script):
+        run = subprocess.run([sys.executable, str(script), "--next-version", "16.4.0", "--format", "json"],
+                             capture_output=True, text=True, timeout=20, cwd=script.parent)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["tool"]["executable_sha256"], hashlib.sha256(script.read_bytes()).hexdigest())
+        return result
 
 
 if __name__ == "__main__":
