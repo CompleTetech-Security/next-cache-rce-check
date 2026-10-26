@@ -39,8 +39,10 @@ not proof that the dependency is installed or deployed.
 
 The build-source field remains `unknown`, including for plain versions read
 from installed metadata. A well-formed version alone does not authenticate
-package contents. Reports retain source categories and relative evidence paths
-without copying raw malformed or URL-shaped version strings.
+package contents. Reports retain source categories, relative evidence paths,
+and each accepted exact `observed_version`, including conflicting candidates,
+in JSON, CSV evidence and HTML. Malformed, qualified and URL-shaped raw version
+strings are omitted; conflicting observations still yield `unknown`.
 
 ## Static context
 

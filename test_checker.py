@@ -48,6 +48,49 @@ class VersionTests(unittest.TestCase):
         self.assertEqual(2, len(report["results"]))
         self.assertEqual({"potentially_affected", "fixed_version_reported"}, {r["status"] for r in report["results"]})
 
+    def test_conflicting_versions_keep_individual_sources_in_all_formats(self):
+        reports = []
+        for pair in (("16.4.0", "16.4.1"), ("16.3.0", "16.4.2")):
+            report = check.assessment([observation(pair[0]), observation(pair[1], "npm-shrinkwrap.json")], [])
+            reports.append(check.canonical_json(report))
+            result = report["results"][0]
+            self.assertEqual("unknown", result["status"])
+            self.assertEqual("not_tested", result["exploitability"])
+            self.assertIsNone(result["component"]["version"])
+            expected = {"package-lock.json": pair[0], "npm-shrinkwrap.json": pair[1]}
+            evidence = [e for e in result["evidence"] if e["kind"] == "version"]
+            self.assertEqual(expected, {e["path"]: e["observed_version"] for e in evidence})
+            row = next(csv.DictReader(io.StringIO(check.render_csv(report))))
+            self.assertEqual(expected, {e["path"]: e["observed_version"] for e in json.loads(row["evidence"]) if e["kind"] == "version"})
+            html = check.render_html(report)
+            for version in pair:
+                self.assertIn("<code>" + version + "</code>", html)
+            for path in expected:
+                self.assertIn("<code>" + path + "</code>", html)
+        self.assertNotEqual(*reports)
+
+    def test_mixed_valid_invalid_conflict_never_exports_raw_versions(self):
+        for raw in ("https://user:synthetic-secret@example.invalid/16.4.1", "16.4.1+secret", "16.4.1\n", "9" * 200):
+            report = check.assessment([observation("16.4.0"), observation(raw, "npm-shrinkwrap.json")], [])
+            result = report["results"][0]
+            self.assertEqual("unknown", result["status"])
+            evidence = [e for e in result["evidence"] if e["kind"] == "version"]
+            self.assertEqual(["16.4.0"], [e["observed_version"] for e in evidence if "observed_version" in e])
+            for rendered in (check.canonical_json(report), check.render_csv(report), check.render_html(report)):
+                self.assertNotIn(raw, rendered)
+                self.assertNotIn("synthetic-secret", rendered)
+
+    def test_evidence_version_schema_rejects_raw_strings_and_other_kinds(self):
+        for value in ("https://secret@example.invalid", "16.4.1+vendor", "016.4.1", "16.4.1\n", "9" * 200):
+            report = check.assessment([observation()], [])
+            report["results"][0]["evidence"][0]["observed_version"] = value
+            with self.assertRaises(check.ContractError):
+                check.canonical_json(report)
+        report = check.assessment([observation()], [])
+        report["results"][0]["evidence"][-1]["observed_version"] = "16.4.0"
+        with self.assertRaises(check.ContractError):
+            check.canonical_json(report)
+
     def test_source_context_is_not_attached_to_nested_copy(self):
         candidates = check.source_candidates("export default {cacheComponents:true};", "next.config.ts")
         report = check.assessment([observation("16.4.0", location="node_modules/parent/node_modules/next")], candidates)

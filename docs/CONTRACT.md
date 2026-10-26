@@ -67,6 +67,14 @@ product-specific rule handling.
 
 ## Minimum assessment evidence
 
+Version evidence may carry `observed_version`: a bounded plain exact
+`major.minor.patch` value (each numeric part is at most six digits, without
+leading zeroes). It belongs to that evidence item's source path/category,
+including when disagreement leaves `component.version` null. The field is
+omitted for malformed or qualified input and is forbidden on other evidence
+kinds. JSON and CSV retain it structurally; HTML displays it with the source.
+Its presence does not attest deployed state or change a conflict's unknown result.
+
 | Status | Required evidence |
 | --- | --- |
 | `unknown` | Missing, ambiguous, conflicting, unsupported, or otherwise insufficient evidence. |
